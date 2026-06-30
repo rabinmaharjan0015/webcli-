@@ -1,0 +1,50 @@
+{
+  "name": "webcli",
+  "version": "1.0.0",
+  "description": "Web access & shared memory for AI agents — supports Claude, DeepSeek, Qwen, and any MCP-compatible model",
+  "keywords": [
+    "mcp",
+    "ai",
+    "web",
+    "search",
+    "claude",
+    "deepseek",
+    "qwen",
+    "memory",
+    "agent",
+    "cli"
+  ],
+  "homepage": "https://github.com/yenya/webcli",
+  "bugs": {
+    "url": "https://github.com/yenya/webcli/issues"
+  },
+  "license": "MIT",
+  "author": "yenya",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yenya/webcli.git"
+  },
+  "bin": {
+    "webcli": "./bin/webcli.js"
+  },
+  "files": [
+    "bin",
+    "install.js",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node install.js",
+    "npx": "node bin/webcli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}

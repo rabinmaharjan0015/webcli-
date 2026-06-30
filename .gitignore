@@ -1,0 +1,7 @@
+webcli
+/bin/
+npm/bin/webcli*
+npm/webcli-*.tgz
+*.tar.gz
+*.exe
+.DS_Store

@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  webcli:
+    build: .
+    container_name: webcli
+    ports:
+      - "8931:8931"
+    volumes:
+      - webcli_data:/home/webcli/.webcli
+    environment:
+      WEBCLI_PORT: "8931"
+      WEBCLI_HOST: "0.0.0.0"
+      WEBCLI_LOG_LEVEL: "info"
+      WEBCLI_LOG_FORMAT: "json"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8931/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  webcli_data:

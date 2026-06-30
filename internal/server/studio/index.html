@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebCLI Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0d1117;color:#e6edf3;display:flex;height:100vh}
+.sidebar{width:220px;background:#161b22;border-right:1px solid #30363d;padding:20px 0;display:flex;flex-direction:column}
+.sidebar h1{font-size:16px;padding:0 20px 16px;border-bottom:1px solid #30363d;margin-bottom:12px;color:#58a6ff}
+.sidebar a{display:flex;align-items:center;gap:8px;padding:10px 20px;color:#8b949e;text-decoration:none;font-size:14px;cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.sidebar a:hover,.sidebar a.active{background:#1c2333;color:#e6edf3}
+.sidebar a.active{border-left:3px solid #58a6ff;padding-left:17px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tab{display:none;flex:1;flex-direction:column;overflow:hidden;padding:20px}
+.tab.active{display:flex}
+.tab h2{margin-bottom:16px;font-size:18px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:12px;color:#8b949e;margin-bottom:4px;margin-top:8px}
+label:first-child{margin-top:0}
+select,input,textarea{width:100%;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:14px;font-family:inherit}
+select option{background:#161b22}
+textarea{resize:vertical;min-height:100px;font-family:monospace}
+button{padding:8px 20px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;margin-top:8px}
+button:hover{background:#2ea043}
+button.danger{background:#da3633}
+button.danger:hover{background:#f85149}
+button.secondary{background:#21262d;border:1px solid #30363d}
+button.secondary:hover{background:#30363d}
+pre{background:#0d1117;padding:12px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #30363d;white-space:pre-wrap;word-break:break-all}
+.msg-row{display:flex;gap:8px;margin-bottom:8px}
+.msg-row textarea{flex:1}
+.msg-row button{flex-shrink:0;margin-top:0;align-self:flex-end}
+.row{display:flex;gap:12px}
+.row>*{flex:1}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px}
+.stat{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px;text-align:center}
+.stat .val{font-size:24px;font-weight:600;color:#58a6ff}
+.stat .lbl{font-size:11px;color:#8b949e;margin-top:4px}
+.mem-list{list-style:none}
+.mem-list li{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:12px;margin-bottom:8px}
+.mem-list li .key{font-weight:600;color:#58a6ff}
+.mem-list li .cat{font-size:11px;color:#8b949e;margin-left:8px}
+.mem-list li .val{display:block;margin-top:4px;font-size:13px;color:#c9d1d9}
+.mem-list li .tags{display:block;margin-top:4px}
+.mem-list li .tags span{display:inline-block;background:#1c2333;color:#8b949e;font-size:11px;padding:2px 6px;border-radius:4px;margin:2px 2px 0 0}
+.chat-box{flex:1;overflow-y:auto;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:8px;margin-bottom:8px;min-height:200px;font-size:14px;line-height:1.6;white-space:pre-wrap}
+.chat-box .msg{margin-bottom:12px;padding:8px 12px;border-radius:8px}
+.chat-box .msg.user{background:#1c2333;border:1px solid #30363d}
+.chat-box .msg.assistant{background:#0d2818;border:1px solid #238636}
+.chat-box .msg .role{font-size:11px;color:#8b949e;margin-bottom:4px}
+.api-status{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.api-status.online{background:#3fb950}
+.api-status.offline{background:#da3633}
+.api-status.unknown{background:#8b949e}
+.loading{text-align:center;color:#8b949e;font-style:italic;padding:20px}
+.logo{font-size:20px;font-weight:700;margin-right:8px}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <h1>WebCLI Studio</h1>
+  <a class="active" onclick="switchTab('chat')">Chat</a>
+  <a onclick="switchTab('search')">Search</a>
+  <a onclick="switchTab('fetch')">Fetch</a>
+  <a onclick="switchTab('memory')">Memory</a>
+  <a onclick="switchTab('config')">Config</a>
+  <a onclick="switchTab('health')">Health</a>
+</div>
+<div class="main">
+
+<!-- Chat Tab -->
+<div id="tab-chat" class="tab active">
+  <h2>Chat</h2>
+  <div class="card">
+    <div class="row">
+      <div><label>Provider</label>
+        <select id="chat-provider">
+          <option value="">Auto-detect</option>
+          <option value="ollama">Ollama (local)</option>
+          <option value="local">Local endpoint</option>
+          <option value="anthropic">Claude</option>
+          <option value="google">Gemini</option>
+          <option value="openai">GPT</option>
+          <option value="deepseek">DeepSeek</option>
+        </select></div>
+      <div><label>Model (optional)</label><input id="chat-model" placeholder="e.g. qwen2.5, claude-sonnet-4"></div>
+    </div>
+  </div>
+  <div class="chat-box" id="chat-box"></div>
+  <div class="msg-row">
+    <textarea id="chat-input" placeholder="Type a message..." rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+    <button onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+<!-- Search Tab -->
+<div id="tab-search" class="tab">
+  <h2>Web Search</h2>
+  <div class="card">
+    <div class="msg-row">
+      <input id="search-query" placeholder="Search query..." onkeydown="if(event.key==='Enter')doSearch()">
+      <button onclick="doSearch()">Search</button>
+    </div>
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<!-- Fetch Tab -->
+<div id="tab-fetch" class="tab">
+  <h2>Fetch URL</h2>
+  <div class="card">
+    <div class="msg-row">
+      <input id="fetch-url" placeholder="https://example.com" onkeydown="if(event.key==='Enter')doFetch()">
+      <button onclick="doFetch()">Fetch</button>
+    </div>
+    <div id="fetch-results"></div>
+  </div>
+</div>
+
+<!-- Memory Tab -->
+<div id="tab-memory" class="tab">
+  <h2>Shared Memory</h2>
+  <div class="row" style="margin-bottom:12px">
+    <div style="flex:1"><input id="mem-search" placeholder="Search memories..." onkeydown="if(event.key==='Enter')searchMemories()"></div>
+    <div><button onclick="searchMemories()" class="secondary">Search</button></div>
+    <div><button onclick="loadMemories()">List All</button></div>
+  </div>
+  <div id="memory-list"></div>
+</div>
+
+<!-- Config Tab -->
+<div id="tab-config" class="tab">
+  <h2>Configuration</h2>
+  <div id="config-stats" class="stats"></div>
+  <div class="card">
+    <h3 style="margin-bottom:8px">Provider Status</h3>
+    <div id="provider-status"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:8px">Raw Config</h3>
+    <pre id="config-raw"></pre>
+  </div>
+</div>
+
+<!-- Health Tab -->
+<div id="tab-health" class="tab">
+  <h2>Server Health</h2>
+  <div id="health-stats" class="stats"></div>
+  <div class="card">
+    <pre id="health-raw"></pre>
+  </div>
+</div>
+
+</div>
+
+<script>
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
+  document.querySelectorAll('.sidebar a').forEach(a=>a.classList.remove('active'))
+  document.getElementById('tab-'+name).classList.add('active')
+  document.querySelector(`.sidebar a[onclick*="'${name}'"]`).classList.add('active')
+}
+
+async function api(method, params){
+  const body={jsonrpc:'2.0',id:1,method,params:params||{}}
+  const r=await fetch('/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  const d=await r.json()
+  if(d.error) throw new Error(d.error.message)
+  return d.result
+}
+
+// Chat
+const chatBox=document.getElementById('chat-box')
+function addChatMsg(role,content){
+  const d=document.createElement('div')
+  d.className='msg '+role
+  d.innerHTML=`<div class="role">${role==='user'?'You':'Assistant'}</div><div class="content"></div>`
+  d.querySelector('.content').textContent=content
+  chatBox.appendChild(d)
+  chatBox.scrollTop=chatBox.scrollHeight
+}
+
+async function sendChat(){
+  const input=document.getElementById('chat-input')
+  const prompt=input.value.trim()
+  if(!prompt) return
+  addChatMsg('user',prompt)
+  input.value=''
+  const loading=document.createElement('div')
+  loading.className='loading'
+  loading.textContent='Waiting for response...'
+  chatBox.appendChild(loading)
+  try {
+    const params={prompt}
+    const p=document.getElementById('chat-provider').value
+    if(p) params.provider=p
+    const m=document.getElementById('chat-model').value.trim()
+    if(m) params.model=m
+    const result=await api('chat',params)
+    loading.remove()
+    const parsed=typeof result.content==='string'?JSON.parse(result.content):result.content
+    addChatMsg('assistant',parsed.content||JSON.stringify(parsed,null,2))
+  }catch(e){
+    loading.remove()
+    addChatMsg('assistant','Error: '+e.message)
+  }
+}
+
+// Search
+async function doSearch(){
+  const q=document.getElementById('search-query').value.trim()
+  if(!q) return
+  const el=document.getElementById('search-results')
+  el.innerHTML='<div class="loading">Searching...</div>'
+  try {
+    const result=await api('web_search',{query:q})
+    const data=typeof result.content==='string'?JSON.parse(result.content):result.content
+    if(!data||data.length===0){el.innerHTML='<div class="loading">No results</div>';return}
+    let html=''
+    data.forEach(r=>{
+      html+=`<div style="margin-bottom:12px;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px">
+        <a href="${r.url}" target="_blank" style="color:#58a6ff;font-weight:600;text-decoration:none">${r.title||r.url}</a>
+        <div style="font-size:12px;color:#8b949e">${r.url}</div>
+        <div style="margin-top:4px;font-size:13px">${r.snippet||''}</div>
+      </div>`
+    })
+    el.innerHTML=html
+  }catch(e){el.innerHTML='<div class="loading">Error: '+e.message+'</div>'}
+}
+
+// Fetch
+async function doFetch(){
+  const url=document.getElementById('fetch-url').value.trim()
+  if(!url) return
+  const el=document.getElementById('fetch-results')
+  el.innerHTML='<div class="loading">Fetching...</div>'
+  try {
+    const result=await api('web_fetch',{url})
+    const data=typeof result.content==='string'?JSON.parse(result.content):result.content
+    el.innerHTML=`<div style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:12px">
+      <div style="font-weight:600;color:#58a6ff">${data.title||'No title'}</div>
+      <div style="font-size:12px;color:#8b949e;margin:4px 0">${data.url}</div>
+      <pre style="margin-top:8px;font-size:13px;white-space:pre-wrap">${data.content||'No content'}</pre>
+    </div>`
+  }catch(e){el.innerHTML='<div class="loading">Error: '+e.message+'</div>'}
+}
+
+// Memory
+async function loadMemories(){
+  const el=document.getElementById('memory-list')
+  el.innerHTML='<div class="loading">Loading...</div>'
+  try {
+    const result=await api('memory_list',{})
+    const data=typeof result.content==='string'?JSON.parse(result.content):result.content
+    if(!data||data.length===0){el.innerHTML='<div class="loading">No memories yet</div>';return}
+    let html='<ul class="mem-list">'
+    data.forEach(m=>{
+      const tags=(m.tags||[]).map(t=>`<span>${t}</span>`).join('')
+      html+=`<li><span class="key">${m.key}</span><span class="cat">${m.category||'fact'}</span>
+        <span class="val">${(m.value||'').substring(0,200)}</span>
+        ${tags?'<span class="tags">'+tags+'</span>':''}</li>`
+    })
+    html+='</ul>'
+    el.innerHTML=html
+  }catch(e){el.innerHTML='<div class="loading">Error: '+e.message+'</div>'}
+}
+
+async function searchMemories(){
+  const q=document.getElementById('mem-search').value.trim()
+  const el=document.getElementById('memory-list')
+  if(!q){loadMemories();return}
+  el.innerHTML='<div class="loading">Searching...</div>'
+  try {
+    const result=await api('memory_search',{query:q})
+    const data=typeof result.content==='string'?JSON.parse(result.content):result.content
+    if(!data||data.length===0){el.innerHTML='<div class="loading">No matches</div>';return}
+    let html='<ul class="mem-list">'
+    data.forEach(m=>{
+      const tags=(m.tags||[]).map(t=>`<span>${t}</span>`).join('')
+      html+=`<li><span class="key">${m.key}</span><span class="cat">${m.category||'fact'}</span>
+        <span class="val">${(m.value||'').substring(0,200)}</span>
+        ${tags?'<span class="tags">'+tags+'</span>':''}</li>`
+    })
+    html+='</ul>'
+    el.innerHTML=html
+  }catch(e){el.innerHTML='<div class="loading">Error: '+e.message+'</div>'}
+}
+
+// Config
+async function loadConfig(){
+  try {
+    const r=await fetch('/config.json')
+    const cfg=await r.json()
+    let html=''
+    const providers=[
+      {name:'Ollama',key:cfg.providers?.ollama_url,online:false},
+      {name:'Claude',key:cfg.providers?.anthropic_key},
+      {name:'Gemini',key:cfg.providers?.google_key},
+      {name:'GPT',key:cfg.providers?.openai_key},
+      {name:'DeepSeek',key:cfg.providers?.deepseek_key},
+    ]
+    providers.forEach(p=>{
+      const status=p.key?'<span class="api-status online"></span>configured':'<span class="api-status unknown"></span>not set'
+      html+=`<div style="margin-bottom:8px">${status} ${p.name}${p.key?' — '+p.key:''}</div>`
+    })
+    document.getElementById('provider-status').innerHTML=html
+    document.getElementById('config-raw').textContent=JSON.stringify(cfg,null,2)
+
+    const statsHtml=`<div class="stat"><div class="val">${cfg.port||8931}</div><div class="lbl">Port</div></div>
+      <div class="stat"><div class="val">${cfg.search?.provider||'duckduckgo'}</div><div class="lbl">Search</div></div>
+      <div class="stat"><div class="val">${cfg.providers?.ollama_url||'-'}</div><div class="lbl">Ollama</div></div>
+      <div class="stat"><div class="val">${cfg.providers?.ollama_model||'-'}</div><div class="lbl">Ollama Model</div></div>`
+    document.getElementById('config-stats').innerHTML=statsHtml
+  }catch(e){
+    document.getElementById('config-raw').textContent='Error loading config: '+e.message
+  }
+}
+
+// Health
+async function loadHealth(){
+  try {
+    const r=await fetch('/health')
+    const h=await r.json()
+    document.getElementById('health-raw').textContent=JSON.stringify(h,null,2)
+    const statsHtml=`<div class="stat"><div class="val">${h.status||'?'}</div><div class="lbl">Status</div></div>
+      <div class="stat"><div class="val">${h.version||'?'}</div><div class="lbl">Version</div></div>
+      <div class="stat"><div class="val">${h.memories||0}</div><div class="lbl">Memories</div></div>
+      <div class="stat"><div class="val">${h.uptime?Math.floor((Date.now()/1000)-h.uptime)+'s':'?'}</div><div class="lbl">Uptime</div></div>`
+    document.getElementById('health-stats').innerHTML=statsHtml
+  }catch(e){
+    document.getElementById('health-raw').textContent='Error: '+e.message
+  }
+}
+
+// Init
+loadConfig()
+loadHealth()
+</script>
+</body>
+</html>
