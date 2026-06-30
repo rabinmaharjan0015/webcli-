@@ -106,30 +106,26 @@ func configHandler(cfg *config.Config) http.HandlerFunc {
 
 func landingHandler(addr string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>WebCLI Server</title>
-<style>
-body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3;max-width:600px;margin:60px auto;padding:0 20px}
-a{color:#58a6ff;text-decoration:none}
-a:hover{text-decoration:underline}
-h1{font-size:24px}
-.ep{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin:12px 0}
-.ep .r{font-family:monospace;font-size:14px;color:#58a6ff}
-.ep .d{font-size:13px;color:#8b949e;margin-top:4px}
-code{background:#1c2333;padding:2px 6px;border-radius:4px;font-size:13px}
-</style></head>
-<body>
-<h1>WebCLI Server</h1>
-<p style="color:#8b949e">MCP server running on <code>%s</code></p>
-<div class="ep"><div class="r"><a href="/sse">/sse</a></div><div class="d">MCP SSE endpoint for AI agents</div></div>
-<div class="ep"><div class="r"><a href="/health">/health</a></div><div class="d">Server health status</div></div>
-<div class="ep"><div class="r"><a href="/config.json">/config.json</a></div><div class="d">Server configuration</div></div>
-<div class="ep"><div class="r"><a href="/">/message</a></div><div class="d">MCP message endpoint (POST)</div></div>
-<hr style="border-color:#30363d;margin:24px 0">
-<p style="color:#8b949e;font-size:14px">Launch the WebCLI Studio web UI with <code>webcli serve studio</code></p>
-</body></html>`, addr)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprintf(w, `WebCLI MCP Server — %s
+
+Endpoints:
+  /sse        MCP SSE endpoint — AI agents connect here (Server-Sent Events stream)
+  /message    MCP message endpoint — send JSON-RPC POST requests here
+  /health     Server health — returns JSON with status, version, memory count
+  /config.json  Server configuration — returns JSON with current settings
+
+CLI commands:
+  webcli search <query>     Search the web (free, DuckDuckGo)
+  webcli fetch <url>        Fetch and extract text from a page
+  webcli chat <prompt>      Chat with an AI model (auto-detects provider)
+  webcli serve               Start this server
+  webcli setup               Run the setup wizard
+
+Shared memory:
+  All search and fetch results auto-save to persistent memory.
+  Other models connected to this server can read them via memory_context tool.
+`, addr)
 	}
 }
 
