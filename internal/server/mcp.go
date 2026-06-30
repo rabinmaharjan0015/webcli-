@@ -16,14 +16,13 @@ import (
 	"github.com/yenya/webcli/internal/ai"
 	"github.com/yenya/webcli/internal/config"
 	"github.com/yenya/webcli/internal/log"
-	"github.com/yenya/webcli/internal/server/studio"
 	"github.com/yenya/webcli/internal/store"
 	"github.com/yenya/webcli/internal/web"
 )
 
 const version = "1.0.0"
 
-func RunMCPServer(cfg *config.Config, transport string, enableStudio bool) error {
+func RunMCPServer(cfg *config.Config, transport string) error {
 	s := server.NewMCPServer(
 		"webcli",
 		version,
@@ -65,9 +64,7 @@ func RunMCPServer(cfg *config.Config, transport string, enableStudio bool) error
 		mux.Handle("/message", sseServer)
 		mux.HandleFunc("/health", healthHandler(cfg, memStore))
 		mux.Handle("/config.json", configHandler(cfg))
-		if enableStudio {
-			mux.Handle("/", studio.Handler())
-		}
+		mux.HandleFunc("/", landingHandler(cfg.Addr()))
 
 		httpServer := &http.Server{
 			Addr:    addr,
@@ -104,6 +101,35 @@ func configHandler(cfg *config.Config) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(cfg)
+	}
+}
+
+func landingHandler(addr string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprintf(w, `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>WebCLI Server</title>
+<style>
+body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3;max-width:600px;margin:60px auto;padding:0 20px}
+a{color:#58a6ff;text-decoration:none}
+a:hover{text-decoration:underline}
+h1{font-size:24px}
+.ep{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin:12px 0}
+.ep .r{font-family:monospace;font-size:14px;color:#58a6ff}
+.ep .d{font-size:13px;color:#8b949e;margin-top:4px}
+code{background:#1c2333;padding:2px 6px;border-radius:4px;font-size:13px}
+</style></head>
+<body>
+<h1>WebCLI Server</h1>
+<p style="color:#8b949e">MCP server running on <code>%s</code></p>
+<div class="ep"><div class="r"><a href="/sse">/sse</a></div><div class="d">MCP SSE endpoint for AI agents</div></div>
+<div class="ep"><div class="r"><a href="/health">/health</a></div><div class="d">Server health status</div></div>
+<div class="ep"><div class="r"><a href="/config.json">/config.json</a></div><div class="d">Server configuration</div></div>
+<div class="ep"><div class="r"><a href="/">/message</a></div><div class="d">MCP message endpoint (POST)</div></div>
+<hr style="border-color:#30363d;margin:24px 0">
+<p style="color:#8b949e;font-size:14px">Launch the WebCLI Studio web UI with <code>webcli serve studio</code></p>
+</body></html>`, addr)
 	}
 }
 
