@@ -1,5 +1,7 @@
 # WebCLI — Web access & shared memory for AI agents
 
+> **⚠ WARNING:** WebCLI handles API keys for AI providers. Never commit your `~/.webcli/` directory or `.env` files to git. The `.gitignore` excludes them by default.
+
 WebCLI is a CLI tool and MCP server that gives AI agents (Claude, DeepSeek, Qwen, etc.)
 web search, page fetching, and **persistent shared memory** — so models can learn from each other
 across sessions.

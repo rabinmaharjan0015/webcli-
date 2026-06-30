@@ -5,3 +5,9 @@ npm/webcli-*.tgz
 *.tar.gz
 *.exe
 .DS_Store
+
+# API keys and credentials
+.env
+.webcli/
+*.pem
+*.key
