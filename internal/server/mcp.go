@@ -106,26 +106,77 @@ func configHandler(cfg *config.Config) http.HandlerFunc {
 
 func landingHandler(addr string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintf(w, `WebCLI MCP Server — %s
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprintf(w, `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebCLI</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#212121;color:#ececec;display:flex;height:100vh;align-items:center;justify-content:center}
+  .container{max-width:640px;width:100%%;padding:32px;text-align:center}
+  h1{font-size:28px;font-weight:700;margin-bottom:4px;background:linear-gradient(135deg,#19c37d,#10a37f);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{color:#8e8ea0;font-size:14px;margin-bottom:32px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px;text-align:left}
+  .card{background:#2f2f2f;border-radius:10px;padding:16px;transition:background .2s;cursor:default}
+  .card:hover{background:#3a3a3a}
+  .card .icon{font-size:20px;margin-bottom:6px}
+  .card .name{font-size:14px;font-weight:600;margin-bottom:4px}
+  .card .desc{font-size:12px;color:#8e8ea0;line-height:1.5}
+  .code{display:inline-block;background:#2f2f2f;color:#19c37d;padding:2px 8px;border-radius:4px;font-family:monospace;font-size:13px}
+  .endpoints{margin-top:24px;text-align:left}
+  .endpoints h3{font-size:13px;color:#8e8ea0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+  .ep{display:flex;align-items:center;gap:12px;padding:10px 12px;background:#2f2f2f;border-radius:8px;margin-bottom:6px}
+  .ep .route{font-family:monospace;font-size:13px;color:#19c37d;min-width:100px}
+  .ep .desc{font-size:13px;color:#b4b4b4}
+  .footer{margin-top:32px;font-size:12px;color:#5d5d5d}
+  @media(max-width:500px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>WebCLI</h1>
+  <div class="sub">Web access &amp; shared memory for AI agents</div>
 
-Endpoints:
-  /sse        MCP SSE endpoint — AI agents connect here (Server-Sent Events stream)
-  /message    MCP message endpoint — send JSON-RPC POST requests here
-  /health     Server health — returns JSON with status, version, memory count
-  /config.json  Server configuration — returns JSON with current settings
+  <div class="grid">
+    <div class="card">
+      <div class="icon">&#x1F50D;</div>
+      <div class="name">Web Search</div>
+      <div class="desc">Search the web via DuckDuckGo. Free, no API key needed.</div>
+    </div>
+    <div class="card">
+      <div class="icon">&#x1F4E1;</div>
+      <div class="name">Fetch Pages</div>
+      <div class="desc">Extract text content from any URL. Auto-saves to memory.</div>
+    </div>
+    <div class="card">
+      <div class="icon">&#x1F4AC;</div>
+      <div class="name">AI Chat</div>
+      <div class="desc">Chat with Claude, Gemini, GPT, DeepSeek, or local models.</div>
+    </div>
+    <div class="card">
+      <div class="icon">&#x1F9E0;</div>
+      <div class="name">Shared Memory</div>
+      <div class="desc">Persistent memory across all models. Learn from each other.</div>
+    </div>
+  </div>
 
-CLI commands:
-  webcli search <query>     Search the web (free, DuckDuckGo)
-  webcli fetch <url>        Fetch and extract text from a page
-  webcli chat <prompt>      Chat with an AI model (auto-detects provider)
-  webcli serve               Start this server
-  webcli setup               Run the setup wizard
+  <div class="endpoints">
+    <h3>Server Endpoints</h3>
+    <div class="ep"><span class="route">/sse</span><span class="desc">MCP Server-Sent Events stream for AI agents</span></div>
+    <div class="ep"><span class="route">/message</span><span class="desc">Send JSON-RPC messages to call tools</span></div>
+    <div class="ep"><span class="route">/health</span><span class="desc">Server status, version, memory count</span></div>
+    <div class="ep"><span class="route">/config.json</span><span class="desc">Server configuration with provider status</span></div>
+  </div>
 
-Shared memory:
-  All search and fetch results auto-save to persistent memory.
-  Other models connected to this server can read them via memory_context tool.
-`, addr)
+  <div class="footer">
+    Running on %s &middot; <span class="code">webcli serve</span>
+  </div>
+</div>
+</body>
+</html>`, addr)
 	}
 }
 
